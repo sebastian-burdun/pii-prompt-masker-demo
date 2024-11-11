@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+scrubadub
+# pypostal
+# scrubadub_address
+scrubadub_stanford
+ipdb
