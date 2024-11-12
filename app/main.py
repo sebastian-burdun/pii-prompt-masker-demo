@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 import nltk
-import scrubadub, scrubadub_stanford
+import scrubadub, scrubadub_address, scrubadub_stanford
 
 nltk.download('punkt_tab')
 
 app = FastAPI()
 scrubber = scrubadub.Scrubber()
 scrubber.add_detector(scrubadub_stanford.detectors.StanfordEntityDetector)
+scrubber.add_detector(scrubadub_address.detectors.AddressDetector)
 
 @app.get("/")
 def read_root():
@@ -23,6 +24,6 @@ def read_root():
     #     text,
     #     callback=create_obfuscation_mapping,
     # )
-    scrubber.clean("My name is John and I work at the United Nations in Geneva")
+    # scrubber.clean("My name is John and I work at the United Nations in Geneva")
     import ipdb; ipdb.set_trace()
     return {"Hello": "World"}
