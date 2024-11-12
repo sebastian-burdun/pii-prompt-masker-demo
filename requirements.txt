@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 scrubadub
-# pypostal
-# scrubadub_address
+postal
+scrubadub_address
 scrubadub_stanford
 ipdb
