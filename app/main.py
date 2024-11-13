@@ -35,15 +35,19 @@ in San Francisco, and his email is john.doe@example.com.
 
 @app.get("/")
 def read_root():
-    request = TEST_TEXT
     obfuscated_text = obfuscator.clean(TEST_TEXT)
     obfuscation_mapping = next(
         processor
         for processor in obfuscator._post_processors
         if isinstance(processor, ObfuscationMappingBuilder)
     ).obfuscation_mapping
-    response = obfuscated_text
+
+    clarified_text = obfuscated_text
+    for obfuscated_item, clarified_item in obfuscation_mapping.items():
+        clarified_text = clarified_text.replace(obfuscated_item, clarified_item)
+
     return {
-        "request": request,
-        "response": response,
+        "original_text": TEST_TEXT,
+        "obfuscated_text": obfuscated_text,
+        "clarified_text": clarified_text,
     }
