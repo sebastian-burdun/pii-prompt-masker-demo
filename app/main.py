@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import FastAPI
 import nltk
 from pydantic import BaseModel
@@ -34,8 +36,12 @@ class ObfuscationData(BaseModel):
     context: str
 
 
-@app.post("/generate-answer")
-def generate_answer(obfuscation_data: ObfuscationData):
+class ResponseData(BaseModel):
+    response: str
+
+
+@app.post("/generate-answer", response_model = ResponseData)
+def generate_answer(obfuscation_data: ObfuscationData) -> Any:
     original_text = " ".join([obfuscation_data.prompt, obfuscation_data.context])
     llm_request_text = obfuscator.clean(original_text)
     obfuscation_mapping = next(
@@ -49,7 +55,6 @@ def generate_answer(obfuscation_data: ObfuscationData):
         llm_response_text = llm_response_text.replace(obfuscated_item, clarified_item)
 
     return {
-        "original_text": original_text,
-        "llm_request_text": llm_request_text,
-        "llm_response_text": llm_response_text,
+        "random_data": "random_data",
+        "response": llm_response_text,
     }
