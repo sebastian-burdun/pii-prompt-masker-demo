@@ -18,14 +18,7 @@ in San Francisco, and his email is john.doe@example.com.
 @app.get("/")
 def read_root():
     obfuscation_mapping = {}
-
-    def create_obfuscation_mapping(original_text, obfuscated_text, **kwargs):
-        obfuscation_mapping[original_text] = obfuscated_text
-
-    obfuscated_text = obfuscator.clean(
-        TEST_TEXT,
-        callback=create_obfuscation_mapping,
-    )
+    obfuscated_text = obfuscator.clean(TEST_TEXT)
     return {
         "input_text": TEST_TEXT,
         "output_text": obfuscated_text,
