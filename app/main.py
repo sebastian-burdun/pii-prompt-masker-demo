@@ -32,15 +32,18 @@ John's phone number is 555-123-4567. He lives at 123 Maple Street
 in San Francisco, and his email is john.doe@example.com.
 """
 
+
 @app.get("/")
 def read_root():
+    request = TEST_TEXT
     obfuscated_text = obfuscator.clean(TEST_TEXT)
+    obfuscation_mapping = next(
+        processor
+        for processor in obfuscator._post_processors
+        if isinstance(processor, ObfuscationMappingBuilder)
+    ).obfuscation_mapping
+    response = obfuscated_text
     return {
-        "input_text": TEST_TEXT,
-        "output_text": obfuscated_text,
-        "mapping": next(
-            processor
-            for processor in obfuscator._post_processors
-            if isinstance(processor, ObfuscationMappingBuilder)
-        ).obfuscation_mapping,
+        "request": request,
+        "response": response,
     }
