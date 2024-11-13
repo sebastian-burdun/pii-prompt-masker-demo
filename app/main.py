@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 import nltk
+from pydantic import BaseModel
 import scrubadub, scrubadub_address, scrubadub_stanford
 
 nltk.download("punkt_tab")
@@ -27,27 +28,28 @@ obfuscator = scrubadub.Scrubber(
 obfuscator.add_detector(scrubadub_stanford.detectors.StanfordEntityDetector)
 obfuscator.add_detector(scrubadub_address.detectors.AddressDetector)
 
-TEST_TEXT = """
-John's phone number is 555-123-4567. He lives at 123 Maple Street
-in San Francisco, and his email is john.doe@example.com.
-""".strip().replace("\n","")
+
+class ObfuscationData(BaseModel):
+    prompt: str
+    context: str
 
 
-@app.get("/")
-def read_root():
-    obfuscated_text = obfuscator.clean(TEST_TEXT)
+@app.post("/generate-answer")
+def generate_answer(obfuscation_data: ObfuscationData):
+    original_text = " ".join([obfuscation_data.prompt, obfuscation_data.context])
+    llm_request_text = obfuscator.clean(original_text)
     obfuscation_mapping = next(
         processor
         for processor in obfuscator._post_processors
         if isinstance(processor, ObfuscationMappingBuilder)
     ).obfuscation_mapping
 
-    clarified_text = obfuscated_text
+    llm_response_text = llm_request_text
     for obfuscated_item, clarified_item in obfuscation_mapping.items():
-        clarified_text = clarified_text.replace(obfuscated_item, clarified_item)
+        llm_response_text = llm_response_text.replace(obfuscated_item, clarified_item)
 
     return {
-        "original_text": TEST_TEXT,
-        "obfuscated_text": obfuscated_text,
-        "clarified_text": clarified_text,
+        "original_text": original_text,
+        "llm_request_text": llm_request_text,
+        "llm_response_text": llm_response_text,
     }
