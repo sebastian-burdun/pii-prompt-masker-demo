@@ -30,7 +30,7 @@ obfuscator.add_detector(scrubadub_address.detectors.AddressDetector)
 TEST_TEXT = """
 John's phone number is 555-123-4567. He lives at 123 Maple Street
 in San Francisco, and his email is john.doe@example.com.
-"""
+""".strip().replace("\n","")
 
 
 @app.get("/")
