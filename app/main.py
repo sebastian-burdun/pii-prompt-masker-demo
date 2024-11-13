@@ -37,7 +37,6 @@ in San Francisco, and his email is john.doe@example.com.
 def read_root():
     request = TEST_TEXT
     obfuscated_text = obfuscator.clean(TEST_TEXT)
-    obfuscated_text = obfuscator.clean("Carl")
     obfuscation_mapping = next(
         processor
         for processor in obfuscator._post_processors
@@ -47,5 +46,4 @@ def read_root():
     return {
         "request": request,
         "response": response,
-        "mapping": obfuscation_mapping
     }
