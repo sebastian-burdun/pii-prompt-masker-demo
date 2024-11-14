@@ -1,9 +1,13 @@
+import logging
 from typing import List, NoReturn
 
 import nltk
 import scrubadub, scrubadub_address, scrubadub_stanford
 
 from settings import TOKEN_MASK_SUFFIX, TOKEN_MASK_PREFIX
+
+
+logger = logging.getLogger("uvicorn.error")
 
 
 nltk.download("punkt_tab")
@@ -46,6 +50,7 @@ class PIIMasker(scrubadub.Scrubber):
         is_token_merging = False
         merged_token = ""
         for response_token in response_tokens:
+            logger.debug(f"Raw LLM token `{response_token.content}`")
             if response_token.content == TOKEN_MASK_PREFIX:
                 is_token_merging = True
                 merged_token = ""
@@ -53,15 +58,19 @@ class PIIMasker(scrubadub.Scrubber):
             if response_token.content == TOKEN_MASK_SUFFIX:
                 is_token_merging = False
                 masked_token = f"{TOKEN_MASK_PREFIX}{merged_token}{TOKEN_MASK_SUFFIX}"
-                yield (
+                logger.debug(f"Merged LLM token `{masked_token}`")
+                returned_token = (
                     self.pii_mask_map[masked_token]
                     if masked_token in self.pii_mask_map
                     else masked_token
                 )
+                logger.debug(f"Returned token `{returned_token}`")
+                yield returned_token
                 continue
             if is_token_merging:
                 merged_token += response_token.content
                 continue
+            logger.debug(f"Returned token `{response_token.content}`")
             yield response_token.content
 
 
