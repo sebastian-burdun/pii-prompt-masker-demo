@@ -14,3 +14,6 @@ DEFAULT_MODEL = "gpt-4o-mini"
 MODEL_NAME = os.getenv('MODEL_NAME', DEFAULT_MODEL)
 if not MODEL_NAME:
     MODEL_NAME = DEFAULT_MODEL  # case adding `MODEL_NAME=` in `.env`
+
+TOKEN_MASK_PREFIX = "{{"
+TOKEN_MASK_SUFFIX = "}}"

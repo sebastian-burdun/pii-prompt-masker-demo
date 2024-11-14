@@ -3,6 +3,9 @@ from typing import List, NoReturn
 import nltk
 import scrubadub, scrubadub_address, scrubadub_stanford
 
+from settings import TOKEN_MASK_SUFFIX, TOKEN_MASK_PREFIX
+
+
 nltk.download("punkt_tab")
 
 
@@ -43,13 +46,13 @@ class PIIMasker(scrubadub.Scrubber):
         is_token_merging = False
         merged_token = ""
         for response_token in response_tokens:
-            if response_token.content == "{{":
+            if response_token.content == TOKEN_MASK_PREFIX:
                 is_token_merging = True
                 merged_token = ""
                 continue
-            if response_token.content == "}}":
+            if response_token.content == TOKEN_MASK_SUFFIX:
                 is_token_merging = False
-                masked_token = "{{" + merged_token + "}}"
+                masked_token = f"{TOKEN_MASK_PREFIX}{merged_token}{TOKEN_MASK_SUFFIX}"
                 yield (
                     self.pii_mask_map[masked_token]
                     if masked_token in self.pii_mask_map
@@ -65,9 +68,11 @@ class PIIMasker(scrubadub.Scrubber):
 pii_masker = PIIMasker(
     post_processor_list=[
         scrubadub.post_processors.FilthReplacer(
-            include_hash=True, separator= "", hash_salt="1gSwPNQeWRw", hash_length=5
+            include_hash=True, separator="", hash_salt="1gSwPNQeWRw", hash_length=5
         ),
-        scrubadub.post_processors.PrefixSuffixReplacer(prefix='{{', suffix='}}'),
+        scrubadub.post_processors.PrefixSuffixReplacer(
+            prefix=TOKEN_MASK_PREFIX, suffix=TOKEN_MASK_SUFFIX
+        ),
         PIIMaskMapBuilder(),
     ]
 )
