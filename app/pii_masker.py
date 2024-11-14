@@ -50,8 +50,9 @@ class PIIMasker(scrubadub.Scrubber):
     async def unmask_tokens(self, response_tokens: str):
         is_token_merging = False
         merged_token = ""
+        answer = ""
         for response_token in response_tokens:
-            logger.debug(f"Raw LLM token `{response_token.content}`")
+            answer += response_token.content
             if response_token.content == TOKEN_MASK_PREFIX:
                 is_token_merging = True
                 merged_token = ""
@@ -59,20 +60,18 @@ class PIIMasker(scrubadub.Scrubber):
             if response_token.content == TOKEN_MASK_SUFFIX:
                 is_token_merging = False
                 masked_token = f"{TOKEN_MASK_PREFIX}{merged_token}{TOKEN_MASK_SUFFIX}"
-                logger.debug(f"Merged LLM token `{masked_token}`")
                 returned_token = (
                     self.pii_mask_map[masked_token]
                     if masked_token in self.pii_mask_map
                     else masked_token
                 )
-                logger.debug(f"Returned token `{returned_token}`")
                 yield returned_token
                 continue
             if is_token_merging:
                 merged_token += response_token.content
                 continue
-            logger.debug(f"Returned token `{response_token.content}`")
             yield response_token.content
+        logger.debug(f"Answer from LLM: '{answer}'")
 
 
 class ProbableEntityDetector(scrubadub.detectors.Detector):
@@ -101,7 +100,7 @@ class ProbablePhoneNumberFilth(scrubadub.filth.Filth):
 
 class ProbablePhoneNumberDetector(ProbableEntityDetector):
     name = "probable_phone_number_detector"
-    regex = re.compile(r"(?<=phone number)[\d-]+", re.IGNORECASE)
+    regex = re.compile(r"(?<=phone number).*([\d-]+)", re.IGNORECASE)
     filth_cls = ProbablePhoneNumberFilth
 
 
@@ -118,5 +117,5 @@ pii_masker = PIIMasker(
 )
 pii_masker.add_detector(scrubadub_stanford.detectors.StanfordEntityDetector)
 pii_masker.add_detector(scrubadub_address.detectors.AddressDetector)
-pii_masker.add_detector(ProbableAddressDetector)
-pii_masker.add_detector(ProbablePhoneNumberDetector)
+# pii_masker.add_detector(ProbableAddressDetector)
+# pii_masker.add_detector(ProbablePhoneNumberDetector)
