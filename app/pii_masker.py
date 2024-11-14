@@ -39,20 +39,35 @@ class PIIMasker(scrubadub.Scrubber):
 
         return unmasked_text
 
-    async def unmask_tokens(self, masked_token_generator: str):
-        for masked_token in masked_token_generator:
-            yield (
-                self.pii_mask_map[masked_token.content]
-                if masked_token.content in self.pii_mask_map 
-                else masked_token.content
-            )
+    async def unmask_tokens(self, response_tokens: str):
+        is_token_merging = False
+        merged_token = ""
+        for response_token in response_tokens:
+            if response_token.content == "{{":
+                is_token_merging = True
+                merged_token = ""
+                continue
+            if response_token.content == "}}":
+                is_token_merging = False
+                masked_token = "{{" + merged_token + "}}"
+                yield (
+                    self.pii_mask_map[masked_token]
+                    if masked_token in self.pii_mask_map
+                    else masked_token
+                )
+                continue
+            if is_token_merging:
+                merged_token += response_token.content
+                continue
+            yield response_token.content
 
 
 pii_masker = PIIMasker(
     post_processor_list=[
         scrubadub.post_processors.FilthReplacer(
-            include_hash=True, hash_salt="example", hash_length=5
+            include_hash=True, separator= "", hash_salt="1gSwPNQeWRw", hash_length=5
         ),
+        scrubadub.post_processors.PrefixSuffixReplacer(prefix='{{', suffix='}}'),
         PIIMaskMapBuilder(),
     ]
 )
