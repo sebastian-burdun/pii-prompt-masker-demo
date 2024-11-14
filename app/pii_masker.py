@@ -71,7 +71,7 @@ class PIIMasker(scrubadub.Scrubber):
                 merged_token += response_token.content
                 continue
             yield response_token.content
-        logger.debug(f"Answer from LLM: '{answer}'")
+        logger.debug(f"Answer from LLM: `{answer}`")
 
 
 class ProbableEntityDetector(scrubadub.detectors.Detector):
@@ -90,7 +90,7 @@ class ProbableAddressFilth(scrubadub.filth.Filth):
 
 class ProbableAddressDetector(ProbableEntityDetector):
     name = "probable_address_detector"
-    regex = re.compile(r"(?<=lives at)[^.,]+", re.IGNORECASE)
+    regex = re.compile(r"(?<=lives at )[^.,]+", re.IGNORECASE)
     filth_cls = ProbableAddressFilth
 
 
@@ -100,7 +100,7 @@ class ProbablePhoneNumberFilth(scrubadub.filth.Filth):
 
 class ProbablePhoneNumberDetector(ProbableEntityDetector):
     name = "probable_phone_number_detector"
-    regex = re.compile(r"(?<=phone number).*([\d-]+)", re.IGNORECASE)
+    regex = re.compile(r"(?<=phone number is )[\d-]+", re.IGNORECASE)
     filth_cls = ProbablePhoneNumberFilth
 
 
@@ -117,5 +117,5 @@ pii_masker = PIIMasker(
 )
 pii_masker.add_detector(scrubadub_stanford.detectors.StanfordEntityDetector)
 pii_masker.add_detector(scrubadub_address.detectors.AddressDetector)
-# pii_masker.add_detector(ProbableAddressDetector)
+pii_masker.add_detector(ProbableAddressDetector)
 # pii_masker.add_detector(ProbablePhoneNumberDetector)
