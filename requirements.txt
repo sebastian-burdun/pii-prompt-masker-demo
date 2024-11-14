@@ -5,3 +5,5 @@ postal
 scrubadub_address
 scrubadub_stanford
 ipdb
+langchain
+openai
