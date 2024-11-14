@@ -1,4 +1,4 @@
-from typing import Any, List, NoReturn
+from typing import List, NoReturn
 
 import nltk
 import scrubadub, scrubadub_address, scrubadub_stanford
