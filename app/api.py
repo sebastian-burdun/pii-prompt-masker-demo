@@ -29,7 +29,7 @@ def generate_answer(question_data: QuestionData) -> Any:
     question = pii_masker.clean(
         " ".join([question_data.context, question_data.prompt])
     )
-    logger.debug(f"Question to LLM: '{question}'")
+    logger.debug(f"Question to LLM: `{question}`")
 
     return StreamingResponse(
         pii_masker.unmask_tokens(llm_client.stream(question)),
