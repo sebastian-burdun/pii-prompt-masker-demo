@@ -5,7 +5,7 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from pydantic import BaseModel
 
-from llm_client import llm
+from llm_client import llm_client
 from pii_masker import pii_masker
 
 
@@ -25,11 +25,8 @@ class AnswerData(BaseModel):
 def generate_answer(question_data: QuestionData) -> Any:
     original_question = " ".join([question_data.prompt, question_data.context])
     masked_question = pii_masker.clean(original_question)
-    template = PromptTemplate.from_template(masked_question)
-    llm_chain = LLMChain(prompt=template, llm=llm)
-    original_answer = llm_chain.run({"name": template})
-    unmasked_answer = pii_masker.unmask(original_answer)
-
+    masked_answer = llm_client.predict(masked_question)
+    unmasked_answer = pii_masker.unmask(masked_answer)
     # llm = OpenAI(api_key=api_key, model_name="text-davinci-003", temperature=0.7)
     # template = PromptTemplate.from_template("Write a friendly introduction for {name}.")
     # llm_chain = LLMChain(prompt=template, llm=llm)
