@@ -19,20 +19,32 @@ class PIIMaskMapBuilder(scrubadub.post_processors.PostProcessor):
 
 
 class PIIMasker(scrubadub.Scrubber):
-    def _initialize_pii_mask_map(self) -> NoReturn:
+
+    def clean(self, *args, **kwargs) -> str:
+        result = super().clean(*args, **kwargs)
+        self._update_pii_mask_map()
+        return result
+
+    def _update_pii_mask_map(self) -> NoReturn:
         self.pii_mask_map = next(
             processor
             for processor in self._post_processors
             if isinstance(processor, PIIMaskMapBuilder)
         ).pii_mask_map
 
-    def unmask(self, masked_text: str) -> str:
-        self._initialize_pii_mask_map()
+    def unmask_answer(self, masked_text: str) -> str:
         unmasked_text = masked_text
         for masked_item, unmasked_item in self.pii_mask_map.items():
             unmasked_text = unmasked_text.replace(masked_item, unmasked_item)
 
         return unmasked_text
+
+    def unmask_token(self, masked_token: str) -> str:
+        return (
+            self._update_pii_mask_map(masked_token)
+            if masked_token in self._update_pii_mask_map
+            else masked_token
+        )
 
 
 pii_masker = PIIMasker(

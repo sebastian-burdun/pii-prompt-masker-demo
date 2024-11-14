@@ -32,4 +32,4 @@ def generate_answer(question_data: QuestionData) -> Any:
     masked_answer = llm_client.predict(masked_question)
     logger.debug(f"Answer received from LLM: '{masked_answer}'")
 
-    return {"response": pii_masker.unmask(masked_answer)}
+    return {"response": pii_masker.unmask_answer(masked_answer)}
