@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import List, NoReturn
 
 import nltk
@@ -74,6 +75,36 @@ class PIIMasker(scrubadub.Scrubber):
             yield response_token.content
 
 
+class ProbableEntityDetector(scrubadub.detectors.Detector):
+    def iter_filth(self, text: str, **kwargs):
+        for match in self.regex.finditer(text):
+            yield self.filth_cls(
+                match=match,
+                detector_name=self.name,
+                locale=self.locale,
+            )
+
+
+class ProbableAddressFilth(scrubadub.filth.Filth):
+    name = "probable_address"
+
+
+class ProbableAddressDetector(ProbableEntityDetector):
+    name = "probable_address_detector"
+    regex = re.compile(r"(?<=lives at)[^.,]+", re.IGNORECASE)
+    filth_cls = ProbableAddressFilth
+
+
+class ProbablePhoneNumberFilth(scrubadub.filth.Filth):
+    name = "probable_phone_number"
+
+
+class ProbablePhoneNumberDetector(ProbableEntityDetector):
+    name = "probable_phone_number_detector"
+    regex = re.compile(r"(?<=phone number)[\d-]+", re.IGNORECASE)
+    filth_cls = ProbablePhoneNumberFilth
+
+
 pii_masker = PIIMasker(
     post_processor_list=[
         scrubadub.post_processors.FilthReplacer(
@@ -87,3 +118,5 @@ pii_masker = PIIMasker(
 )
 pii_masker.add_detector(scrubadub_stanford.detectors.StanfordEntityDetector)
 pii_masker.add_detector(scrubadub_address.detectors.AddressDetector)
+pii_masker.add_detector(ProbableAddressDetector)
+pii_masker.add_detector(ProbablePhoneNumberDetector)
