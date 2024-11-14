@@ -39,12 +39,13 @@ class PIIMasker(scrubadub.Scrubber):
 
         return unmasked_text
 
-    def unmask_token(self, masked_token: str) -> str:
-        return (
-            self._update_pii_mask_map(masked_token)
-            if masked_token in self._update_pii_mask_map
-            else masked_token
-        )
+    async def unmask_tokens(self, masked_token_generator: str):
+        for masked_token in masked_token_generator:
+            yield (
+                self.pii_mask_map[masked_token.content]
+                if masked_token.content in self.pii_mask_map 
+                else masked_token.content
+            )
 
 
 pii_masker = PIIMasker(

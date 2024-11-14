@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from llm_client import llm_client
@@ -11,7 +12,8 @@ from pii_masker import pii_masker
 app = FastAPI()
 
 
-logger = logging.getLogger('uvicorn.error')
+logger = logging.getLogger("uvicorn.error")
+
 
 class QuestionData(BaseModel):
     prompt: str
@@ -29,7 +31,7 @@ def generate_answer(question_data: QuestionData) -> Any:
     )
     logger.debug(f"Question sent to LLM: '{masked_question}'")
 
-    masked_answer = llm_client.predict(masked_question)
-    logger.debug(f"Answer received from LLM: '{masked_answer}'")
-
-    return {"response": pii_masker.unmask_answer(masked_answer)}
+    return StreamingResponse(
+        pii_masker.unmask_tokens(llm_client.stream(masked_question)),
+        media_type="text/event-stream",
+    )
