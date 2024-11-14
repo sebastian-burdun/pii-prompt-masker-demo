@@ -7,3 +7,4 @@ scrubadub_stanford
 ipdb
 langchain
 openai
+python_dotenv
