@@ -1,6 +1,6 @@
-from config import MODEL_NAME, OPENAPI_KEY
+from settings import MODEL_NAME, OPENAPI_KEY
 
-from langchain import OpenAI
+from langchain_community.chat_models import ChatOpenAI
 
 
-llm = OpenAI(api_key=OPENAPI_KEY, model_name=MODEL_NAME, temperature=0.7)
+llm_client = ChatOpenAI(openai_api_key=OPENAPI_KEY, model_name=MODEL_NAME)
