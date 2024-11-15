@@ -1,10 +1,10 @@
 import logging
-import re
 from typing import List, NoReturn
 
 import nltk
 import scrubadub, scrubadub_address, scrubadub_stanford
 
+from detectors import ProbableAddressDetector, ProbablePhoneNumberDetector
 from settings import TOKEN_MASK_SUFFIX, TOKEN_MASK_PREFIX
 
 
@@ -26,7 +26,7 @@ class PIIMaskMapBuilder(scrubadub.post_processors.PostProcessor):
         return item_list
 
 
-class PIIMasker(scrubadub.Scrubber):
+class PIIPromptMasker(scrubadub.Scrubber):
 
     def clean(self, *args, **kwargs) -> str:
         result = super().clean(*args, **kwargs)
@@ -41,6 +41,7 @@ class PIIMasker(scrubadub.Scrubber):
         ).pii_mask_map
 
     def unmask_answer(self, masked_text: str) -> str:
+        """Unmasking for synchronous responses."""
         unmasked_text = masked_text
         for masked_item, unmasked_item in self.pii_mask_map.items():
             unmasked_text = unmasked_text.replace(masked_item, unmasked_item)
@@ -48,6 +49,7 @@ class PIIMasker(scrubadub.Scrubber):
         return unmasked_text
 
     async def unmask_tokens(self, response_tokens: str):
+        """Unmasking for streaming responses."""
         is_token_merging = False
         merged_token = ""
         answer = ""
@@ -57,15 +59,14 @@ class PIIMasker(scrubadub.Scrubber):
                 is_token_merging = True
                 merged_token = ""
                 continue
-            if response_token.content == TOKEN_MASK_SUFFIX:
+            elif response_token.content == TOKEN_MASK_SUFFIX:
                 is_token_merging = False
                 masked_token = f"{TOKEN_MASK_PREFIX}{merged_token}{TOKEN_MASK_SUFFIX}"
-                returned_token = (
+                yield (
                     self.pii_mask_map[masked_token]
                     if masked_token in self.pii_mask_map
                     else masked_token
                 )
-                yield returned_token
                 continue
             if is_token_merging:
                 merged_token += response_token.content
@@ -74,37 +75,7 @@ class PIIMasker(scrubadub.Scrubber):
         logger.debug(f"Answer from LLM: `{answer}`")
 
 
-class ProbableEntityDetector(scrubadub.detectors.Detector):
-    def iter_filth(self, text: str, **kwargs):
-        for match in self.regex.finditer(text):
-            yield self.filth_cls(
-                match=match,
-                detector_name=self.name,
-                locale=self.locale,
-            )
-
-
-class ProbableAddressFilth(scrubadub.filth.Filth):
-    name = "probable_address"
-
-
-class ProbableAddressDetector(ProbableEntityDetector):
-    name = "probable_address_detector"
-    regex = re.compile(r"(?<=lives at )[^.,]+", re.IGNORECASE)
-    filth_cls = ProbableAddressFilth
-
-
-class ProbablePhoneNumberFilth(scrubadub.filth.Filth):
-    name = "probable_phone_number"
-
-
-class ProbablePhoneNumberDetector(ProbableEntityDetector):
-    name = "probable_phone_number_detector"
-    regex = re.compile(r"(?<=phone number is )[\d-]+", re.IGNORECASE)
-    filth_cls = ProbablePhoneNumberFilth
-
-
-pii_masker = PIIMasker(
+pii_prompt_masker = PIIPromptMasker(
     post_processor_list=[
         scrubadub.post_processors.FilthReplacer(
             include_hash=True, separator="", hash_salt="1gSwPNQeWRw", hash_length=5
@@ -115,10 +86,10 @@ pii_masker = PIIMasker(
         PIIMaskMapBuilder(),
     ]
 )
-pii_masker.add_detector(scrubadub_stanford.detectors.StanfordEntityDetector)
-pii_masker.add_detector(scrubadub_address.detectors.AddressDetector)
-pii_masker.add_detector(ProbableAddressDetector)
+pii_prompt_masker.add_detector(scrubadub_stanford.detectors.StanfordEntityDetector)
+pii_prompt_masker.add_detector(scrubadub_address.detectors.AddressDetector)
+pii_prompt_masker.add_detector(ProbableAddressDetector)
 
 # Uncomment to use additional phone masking -
-# pii_masker.add_detector(ProbablePhoneNumberDetector)
+# pii_prompt_masker.add_detector(ProbablePhoneNumberDetector)
 # This is a very curious case, please check Phone masking.pdf document in the docs folder.
