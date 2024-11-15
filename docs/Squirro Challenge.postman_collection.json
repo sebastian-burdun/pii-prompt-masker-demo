@@ -1,0 +1,37 @@
+{
+	"info": {
+		"_postman_id": "73152b94-f0a3-460a-a0ea-a9059aebf606",
+		"name": "Squirro Challenge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Squirro Challenge",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"prompt\": \"What is Carls's phone number?\",\n    \"context\": \"Carls's phone number is 555-123-4577. He lives at 124 Grape Street in San Francisco, and his email is carl.doe@example.com.\"\n}"
+				},
+				"url": {
+					"raw": "localhost:8000/generate-answer",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"generate-answer"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
