@@ -118,4 +118,7 @@ pii_masker = PIIMasker(
 pii_masker.add_detector(scrubadub_stanford.detectors.StanfordEntityDetector)
 pii_masker.add_detector(scrubadub_address.detectors.AddressDetector)
 pii_masker.add_detector(ProbableAddressDetector)
+
+# Uncomment to use additional phone masking -
 # pii_masker.add_detector(ProbablePhoneNumberDetector)
+# This is a very curious case, please check Phone masking.pdf document in the docs folder.
