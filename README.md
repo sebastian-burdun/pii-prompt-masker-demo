@@ -14,13 +14,21 @@
 $ git clone git@github.com:sebastian-burdun/pii-prompt-masker-demo.git
 ```
 
-2. Run:
+2. Create `.env` file:
 ```bash
 $ cd pii-prompt-masker-demo
+$ mv .env.template .env
+```
+and in the `.env` file assign `OPENAPI_KEY` variable with a key generated at https://platform.openai.com/settings/organization/api-keys.
+
+3. Run:
+```bash
 $ docker-compose up
 ```
 
-3. Use the http://localhost:8000/generate-answer POST endpoint in accordance to the documentation.
+4. Use the http://localhost:8000/generate-answer POST endpoint in accordance to the documentation.
+
+5. Enjoy!!!
 
 
 ## Usage
