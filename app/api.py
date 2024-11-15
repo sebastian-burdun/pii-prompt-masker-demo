@@ -26,12 +26,12 @@ class AnswerData(BaseModel):
 
 @app.post("/generate-answer", response_model=AnswerData)
 def generate_answer(question_data: QuestionData) -> Any:
-    question = pii_masker.clean(
-        " ".join([question_data.context, question_data.prompt])
-    )
-    logger.debug(f"Question to LLM: `{question}`")
+    unmasked_question = " ".join([question_data.context, question_data.prompt])
+    logger.debug(f"Original question: `{unmasked_question}`")
+    masked_question = pii_masker.clean(unmasked_question)
+    logger.debug(f"Question to LLM: `{masked_question}`")
 
     return StreamingResponse(
-        pii_masker.unmask_tokens(llm_client.stream(question)),
+        pii_masker.unmask_tokens(llm_client.stream(masked_question)),
         media_type="text/event-stream",
     )
