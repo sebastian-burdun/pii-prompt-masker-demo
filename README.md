@@ -1,5 +1,5 @@
 # PII Prompt Masker DEMO
-
+Application for masking PII data in conversations with LLM.
 
 ## Requirements
 - Linux (tested on Ubuntu 22.04)
